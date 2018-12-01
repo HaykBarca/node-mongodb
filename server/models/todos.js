@@ -8,10 +8,12 @@ const Todo = mongoose.model('todo', {
         minLength: 1
     },
     completed: {
-        type: Boolean
+        type: Boolean,
+        default: false
     },
     completedAt: {
-        type: Number
+        type: Number,
+        default: null
     } 
 });
 
