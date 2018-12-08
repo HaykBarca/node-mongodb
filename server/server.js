@@ -4,10 +4,12 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const {ObjectID} = require('mongodb');
 const _ = require('lodash');
+const bcrypt = require('bcryptjs');
 
 const {mongoose} = require('./db/mongoose');
 const {User} = require('./models/users');
 const {Todo} = require('./models/todos');
+const {authenticate} = require('./middleware/authenticate');
 
 const PORT = process.env.PORT;
 
@@ -113,6 +115,22 @@ app.post('/users', (req, res) => {
         res.status(400).send(e);
     });
  });
+
+app.get('/users/me', authenticate, (req, res) => {
+    res.send(req.user);
+});
+
+app.post('/users/login', (req, res) => {
+    let body = _.pick(req.body, ["email", "password"]);
+
+    User.findByCredentials(body.email, body.password).then((user) => {
+        return user.generateAuthToken().then((token) => {
+            res.header('x-auth', token).send(user);
+        });
+    }).catch((e) => {
+        res.status(400).send();
+    });
+});
 
 app.listen(PORT, () => {
     console.log(`App is litening on port ${PORT}`);
